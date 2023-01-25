@@ -1,0 +1,62 @@
+FROM golang:1.19 AS builder
+
+RUN go version
+
+RUN set -eux; \
+	arch="$(dpkg --print-architecture)"; arch="${arch##*-}"; \
+	case "$arch" in \
+		'amd64') \
+			export GOARCH='amd64' GOOS='linux'; \
+			;; \
+		'armhf') \
+			export GOARCH='arm' GOARM='7' GOOS='linux'; \
+			;; \
+		'armel') \
+			export GOARCH='arm' GOARM='5' GOOS='linux'; \
+			;; \
+		'arm64') \
+			export GOARCH='arm64' GOOS='linux'; \
+			;; \
+		'i386') \
+			export GOARCH='386' GOOS='linux'; \
+			;; \
+		'mips64el') \
+			export GOARCH='mips64el' GOOS='linux'; \
+			;; \
+		'mips64') \
+			export GOARCH='mips64' GOOS='linux'; \
+			;; \
+		'mips') \
+			export GOARCH='mips' GOOS='linux'; \
+			;; \
+		'mips_softfloat') \
+			export GOARCH='mips' GOMIPS='softfloat' GOOS='linux'; \
+			;; \
+		'mipsle') \
+			export GOARCH='mipsle' GOOS='linux'; \
+			;; \
+		'mipsle_softfloat') \
+			export GOARCH='mipsle' GOMIPS='softfloat' GOOS='linux'; \
+			;; \
+		*) echo >&2 "error: unsupported architecture '$arch' (likely packaging update needed)"; exit 1 ;; \
+	esac; \
+    \
+    export GOCACHE='/tmp/gocache'; \
+    \
+    go get github.com/golang/dep/cmd/dep && \
+    dep ensure -v; \
+    go get ./...; \
+    \
+    ./make; \
+	\
+	./ck-server -v; \
+	./ck-client -v;
+
+FROM scratch
+
+WORKDIR /root/
+
+COPY --from=builder ck-server .
+COPY --from=builder ck-client .
+
+CMD ["./ck-server"]
