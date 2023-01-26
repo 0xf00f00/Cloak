@@ -2,6 +2,10 @@ FROM golang:1.19 AS builder
 
 RUN go version
 
+WORKDIR /app
+
+COPY ./ ./
+
 RUN set -eux; \
 	arch="$(dpkg --print-architecture)"; arch="${arch##*-}"; \
 	case "$arch" in \
@@ -43,20 +47,18 @@ RUN set -eux; \
     \
     export GOCACHE='/tmp/gocache'; \
     \
-    go get github.com/golang/dep/cmd/dep && \
-    dep ensure -v; \
     go get ./...; \
     \
-    ./make; \
+    make; \
 	\
-	./ck-server -v; \
-	./ck-client -v;
+	./build/ck-server -v; \
+	./build/ck-client -v;
 
 FROM scratch
 
-WORKDIR /root/
+WORKDIR /
 
-COPY --from=builder ck-server .
-COPY --from=builder ck-client .
+COPY --from=builder /app/build/ck-server .
+COPY --from=builder /app/build/ck-client .
 
 CMD ["./ck-server"]
