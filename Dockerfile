@@ -54,11 +54,19 @@ RUN set -eux; \
 	./build/ck-server -v; \
 	./build/ck-client -v;
 
-FROM scratch
+FROM alpine:latest
 
-WORKDIR /
+RUN apk add --no-cache bash libc6-compat
 
-COPY --from=builder /app/build/ck-server .
-COPY --from=builder /app/build/ck-client .
+VOLUME [ "/data" ]
 
-CMD ["./ck-server"]
+WORKDIR /usr/local/bin
+
+COPY --from=builder /app/build/ck-server ./
+COPY --from=builder /app/build/ck-client ./
+
+COPY ./docker-entrypoint.sh ./
+RUN chmod +x ./docker-entrypoint.sh
+
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["ck-server"]
