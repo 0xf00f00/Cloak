@@ -50,6 +50,7 @@ Table of Contents
 
 * [Quick Start](#quick-start)
 * [Build](#build)
+* [Docker](#docker)
 * [Configuration](#configuration)
     * [Server](#server)
     * [Client](#client)
@@ -71,6 +72,57 @@ make
 ```
 
 Built binaries will be in `build` folder.
+
+## Docker
+
+```bash
+docker pull ghcr.io/0xf00f00/cloak:latest
+```
+
+### Two way to run the docker image:
+
+#### A) Mounting a config file
+
+Create a config file using the instructions provided under [Configuration](#configuration) and store it somewhere locally (e.g. `/etc/ckserver.json`). Then mount the config file as a volume to your container:
+
+```bash
+docker run -d -p 443:443 -p 80:80 -v /etc/ckserver.json:/data/cloak.json ghcr.io/0xf00f00/cloak:latest
+```
+
+#### B) Using environment variables
+
+Both the client and server can be configured through several environment variables in case no config file is provided. The container will generate a simple config file when the it is first run and store it under `/data/cloak.json`.
+
+The following environment variables are required:
+
+Server mode:
+
+- `CLOAK_PROXY_METHOD`
+- `CLOAK_PROXY_PROTOCOL`
+- `CLOAK_PROXY_ADDRESS`
+
+For client: 
+
+- `CLOAK_REMOTE_HOST`
+
+### Running as client
+
+To run as a client, append `ck-client` to your docker run command.
+
+
+### Examples
+
+A simple server config to connect to a shadowsocks instance listening on 127.0.0.1:8080
+
+```bash
+docker run -d -p 443:443 -p 80:80 -e CLOAK_PROXY_METHOD=shadowsocks -e CLOAK_PROXY_PROTOCOL=tcp -e CLOAK_PROXY_ADDRESS=127.0.0.1:8080 ghcr.io/0xf00f00/cloak:latest
+```
+
+A simple client config to connect to a remote listening on example.org:443
+
+```bash
+docker run -p 1984:1984 -e CLOAK_REMOTE_HOST=example.org -e CLOAK_PROXY_METHOD=shadowsocks -e CLOAK_UUID="SU5QVVRfVVVJRF9IRVJF==" -e CLOAK_PUBLIC_KEY="U0VSVkVSX1BVQkxJQ19LRVlfSEVSRQ==" ghcr.io/0xf00f00/cloak:latest ck-client
+```
 
 ## Configuration
 
