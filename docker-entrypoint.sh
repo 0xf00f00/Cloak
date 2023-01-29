@@ -216,7 +216,7 @@ _main() {
         elif [ "$1" = 'ck-client' ]; then
             docker_verify_client_env
 
-            set -- "$@" '-i' "${CLOAK_LISTEN_IP:-'0.0.0.0'}"
+            set -- "$@" '-i' "${CLOAK_LISTEN_IP:-0.0.0.0}"
             set -- "$@" '-l' "${CLOAK_LISTEN_PORT:-1984}"
             set -- "$@" '-p' "${CLOAK_REMOTE_PORT:-443}"
             set -- "$@" '-s' "${CLOAK_REMOTE_HOST}"
