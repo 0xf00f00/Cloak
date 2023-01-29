@@ -16,29 +16,37 @@ _is_sourced() {
 		&& [ "${FUNCNAME[1]}" = 'source' ]
 }
 
+cloak_error() {
+    echo "$@"
+    exit 1
+}
+
+cloak_info() {
+    if [ "$DEBUG" == "1" ]; then
+        echo "$@"
+    fi
+}
+
 # check if the required environment variables are provided if run in server mode
 docker_verify_server_env() {
 	if [ ! -f "$CLOAK_CONFIG_FILE" ]; then
         if [ -z "$CLOAK_PROXY_METHOD" ]; then
-            echo 'Proxy method (CLOAK_PROXY_METHOD) is missing. (example: shadowsocks)'
-            exit 1
+            cloak_error 'Proxy method (CLOAK_PROXY_METHOD) is missing. (example: shadowsocks)'
         fi
         if [ -z "$CLOAK_PROXY_PROTOCOL" ]; then
-            echo 'Proxy protocol (CLOAK_PROXY_PROTOCOL) is missing. (example: tcp)'
-            exit 1
+            cloak_error 'Proxy protocol (CLOAK_PROXY_PROTOCOL) is missing. (example: tcp)'
         fi
         if [ -z "$CLOAK_PROXY_ADDRESS" ]; then
-            echo 'Proxy address and port (CLOAK_PROXY_ADDRESS) is missing. (example: 127.0.0.1:8080)'
-            exit 1
+            cloak_error 'Proxy address and port (CLOAK_PROXY_ADDRESS) is missing. (example: 127.0.0.1:8080)'
         fi
         if [ -z "$CLOAK_BIND_ADDRESS" ]; then
-            echo 'No bind address provided (CLOAK_BIND_ADDRESS). Will bind to ports 80 and 443.'
+            cloak_info 'No bind address provided (CLOAK_BIND_ADDRESS). Will bind to ports 80 and 443.'
         fi
         if [ -z "$CLOAK_REDIR_ADDRESS" ]; then
-            echo 'No redirect address provided (CLOAK_REDIR_ADDRESS). Will redirect the requests to www.bing.com.'
+            cloak_info 'No redirect address provided (CLOAK_REDIR_ADDRESS). Will redirect the requests to www.bing.com.'
         fi
         if [ -z "$CLOAK_PRIVATE_KEY" ]; then
-            echo 'No private key provided (CLOAK_PRIVATE_KEY). Will generate a random one.'
+            cloak_info 'No private key provided (CLOAK_PRIVATE_KEY). Will generate a random one.'
         fi
 	fi
 }
@@ -46,49 +54,45 @@ docker_verify_server_env() {
 # check if the required environment variables are provided if run in client mode
 docker_verify_client_env() {
     if [ -z "$CLOAK_REMOTE_HOST" ]; then
-        echo 'No IP or host provided for the remote (CLOAK_REMOTE_HOST).'
-        exit 1
+        cloak_error 'No IP or host provided for the remote (CLOAK_REMOTE_HOST).'
     fi
     if [ -z "$CLOAK_REMOTE_PORT" ]; then
-        echo 'No proxy remote port provided (CLOAK_REMOTE_PORT). Will use 443.'
+        cloak_info 'No proxy remote port provided (CLOAK_REMOTE_PORT). Will use 443.'
     fi
     if [ -z "$CLOAK_LISTEN_IP" ]; then
-        echo 'No listen IP provided (CLOAK_LISTEN_IP). Will use 0.0.0.0.'
+        cloak_info 'No listen IP provided (CLOAK_LISTEN_IP). Will use 0.0.0.0.'
     fi
     if [ -z "$CLOAK_LISTEN_PORT" ]; then
-        echo 'No listen port provided (CLOAK_LISTEN_PORT). Will use 1984.'
+        cloak_info 'No listen port provided (CLOAK_LISTEN_PORT). Will use 1984.'
     fi
 
 	if [ ! -f "$CLOAK_CONFIG_FILE" ]; then
         if [ -z "$CLOAK_PROXY_METHOD" ]; then
-            echo 'Proxy method (CLOAK_PROXY_METHOD) is missing. (example: shadowsocks)'
-            exit 1
+            cloak_error 'Proxy method (CLOAK_PROXY_METHOD) is missing. (example: shadowsocks)'
         fi
         if [ -z "$CLOAK_UUID" ]; then
-            echo 'UUID (CLOAK_UUID) is missing.'
-            exit 1
+            cloak_error 'UUID (CLOAK_UUID) is missing.'
         fi
         if [ -z "$CLOAK_PUBLIC_KEY" ]; then
-            echo 'No private key provided (CLOAK_PRIVATE_KEY).'
-            exit 1
+            cloak_error 'No private key provided (CLOAK_PRIVATE_KEY).'
         fi
         if [ -z "$CLOAK_TRANSPORT" ]; then
-            echo 'No transport method provided (CLOAK_TRANSPORT). Will use direct.'
+            cloak_info 'No transport method provided (CLOAK_TRANSPORT). Will use direct.'
         fi
         if [ -z "$CLOAK_ENCRYPTION_METHOD" ]; then
-            echo 'No encryption method provided (CLOAK_ENCRYPTION_METHOD). Will use plain (no encryption).'
+            cloak_info 'No encryption method provided (CLOAK_ENCRYPTION_METHOD). Will use plain (no encryption).'
         fi
         if [ -z "$CLOAK_NUMBER_OF_CONNECTIONS" ]; then
-            echo 'No value for number of connections provided (CLOAK_NUMBER_OF_CONNECTIONS). Will use 4 as default.'
+            cloak_info 'No value for number of connections provided (CLOAK_NUMBER_OF_CONNECTIONS). Will use 4 as default.'
         fi
         if [ -z "$CLOAK_BROWSER_SIGNATURE" ]; then
-            echo 'No browser signature chosen (CLOAK_BROWSER_SIGNATURE). Will use chrome.'
+            cloak_info 'No browser signature chosen (CLOAK_BROWSER_SIGNATURE). Will use chrome.'
         fi
         if [ -z "$CLOAK_SERVER_NAME" ]; then
-            echo 'No server name provided (CLOAK_SERVER_NAME). Will use www.bing.com.'
+            cloak_info 'No server name provided (CLOAK_SERVER_NAME). Will use www.bing.com.'
         fi
         if [ -z "$CLOAK_STREAM_TIMEOUT" ]; then
-            echo 'No stream timeout value provided (CLOAK_STREAM_TIMEOUT). Will use 300.'
+            cloak_info 'No stream timeout value provided (CLOAK_STREAM_TIMEOUT). Will use 300.'
         fi
 	fi
 }
@@ -210,7 +214,7 @@ _main() {
 
             # generate a config file for the server using the values from environment variables if no config is provided
             if [ ! -f "$CLOAK_CONFIG_FILE" ]; then
-                echo "Generating simple config file at $CLOAK_CONFIG_FILE!"
+                cloak_info "Generating simple config file at $CLOAK_CONFIG_FILE!"
                 generate_server_config
             fi
         elif [ "$1" = 'ck-client' ]; then
@@ -223,7 +227,7 @@ _main() {
 
             # generate a config file for the client using the values from environment variables if no config is provided
             if [ ! -f "$CLOAK_CONFIG_FILE" ]; then
-                echo "Generating simple config file at $CLOAK_CONFIG_FILE!"
+                cloak_info "Generating simple config file at $CLOAK_CONFIG_FILE!"
                 generate_client_config
             fi
         fi
