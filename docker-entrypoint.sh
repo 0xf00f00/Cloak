@@ -53,7 +53,7 @@ docker_verify_client_env() {
         echo 'No proxy remote port provided (CLOAK_REMOTE_PORT). Will use 443.'
     fi
     if [ -z "$CLOAK_LISTEN_IP" ]; then
-        echo 'No listen IP provided (CLOAK_LISTEN_IP). Will use 127.0.0.1.'
+        echo 'No listen IP provided (CLOAK_LISTEN_IP). Will use 0.0.0.0.'
     fi
     if [ -z "$CLOAK_LISTEN_PORT" ]; then
         echo 'No listen port provided (CLOAK_LISTEN_PORT). Will use 1984.'
@@ -216,7 +216,7 @@ _main() {
         elif [ "$1" = 'ck-client' ]; then
             docker_verify_client_env
 
-            set -- "$@" '-i' "${CLOAK_LISTEN_IP:-'127.0.0.1'}"
+            set -- "$@" '-i' "${CLOAK_LISTEN_IP:-'0.0.0.0'}"
             set -- "$@" '-l' "${CLOAK_LISTEN_PORT:-1984}"
             set -- "$@" '-p' "${CLOAK_REMOTE_PORT:-443}"
             set -- "$@" '-s' "${CLOAK_REMOTE_HOST}"
