@@ -54,9 +54,7 @@ RUN set -eux; \
 	./build/ck-server -v; \
 	./build/ck-client -v;
 
-FROM alpine:latest
-
-RUN apk add --no-cache bash libc6-compat
+FROM debian:stable-slim
 
 VOLUME [ "/data" ]
 
